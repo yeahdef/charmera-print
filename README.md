@@ -9,6 +9,12 @@ Charmera ──USB-C──► StickS3 ──Bluetooth──► thermal printer
  (patched)          (bridge)               (any supported one in range)
 ```
 
+<p align="center">
+  <img src="docs/media/demo.webp" alt="Taking a photo with the Charmera, which then prints on a Clabel CT-320B" height="480">
+  &nbsp;
+  <img src="docs/media/setup.jpg" alt="The Charmera plugged into an M5Stack StickS3, in front of a Clabel CT-320B printer" height="480">
+</p>
+
 > **Unofficial and at your own risk.** This replaces your camera's firmware with a patched copy of the factory firmware. It has worked on our cameras, but a wrong or interrupted flash can leave a camera that needs a hardware programmer to recover. Not affiliated with Kodak, Reto, M5Stack or any printer maker. No camera firmware is included in this repository; you build the update yourself from public images.
 
 ## What you need
