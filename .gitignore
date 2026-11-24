@@ -1,0 +1,19 @@
+# Allowlist: only the published project is tracked. Everything else in this
+# folder (firmware dumps, built update files, reverse-engineering notes and
+# third-party references) stays local. Camera firmware must never be committed.
+/*
+!/.gitignore
+!/README.md
+!/LICENSE
+!/docs/
+!/patch/
+/patch/*
+!/patch/shotsync.s
+!/tools/
+/tools/*
+!/tools/build_camera_update.py
+!/bridge/
+/bridge/*
+!/bridge/charmera_bridge/
+*.bin
+.DS_Store
