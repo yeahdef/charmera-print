@@ -50,7 +50,7 @@ Not supported yet: Munbyn FM226, Rongta RPP300 (they are recognised and skipped)
 
 ## How fast
 
-From the camera appearing on USB to the print starting: about **1–2 seconds**, depending on the printer. That covers 0.1 s to read the photo, 0.4 s to decode and dither it, and 0.5–2.5 s to send it over Bluetooth. Before that, the camera takes a second or two after the shutter to save the photo and present its card.
+From the camera appearing on USB to the print starting: about **1–2 seconds**, depending on the printer. That covers 0.1 s to read the photo, 0.4 s to decode, auto-tone and dither it, and 0.5–2.5 s to send it over Bluetooth. Before that, the camera takes a second or two after the shutter to save the photo and present its card.
 
 After each print **the camera switches itself off**. Press its power button once and it comes straight back to the live viewfinder, skipping the mode-select screen. ([Why it has to switch off](docs/HOW-IT-WORKS.md#why-the-camera-switches-off-after-each-print).)
 

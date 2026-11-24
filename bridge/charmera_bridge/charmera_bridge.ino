@@ -644,7 +644,26 @@ static bool renderRaster(const uint8_t *jpg, size_t len, int HEAD, int maxRows) 
   acc = 0;
   for (hi = 255; hi > 0; hi--) { acc += hist[hi]; if (acc > cut) break; }
   if (hi - lo < 16) { lo = 0; hi = 255; }
-  logf("levels %d..%d", lo, hi);
+
+  // Auto-tone: after the stretch, bend the curve so the median lands at mid
+  // grey. A dark photo (or one with a bright lamp or window setting the white
+  // point) gets its shadows and midtones lifted; a bright one is darkened only
+  // slightly (thermal prints already run dark). The gamma is clamped so a nearly
+  // black or white scene isn't pushed into noise. Stretch and gamma go into one
+  // table.
+  uint32_t half = (uint32_t)(SW * SH) / 2; acc = 0; int med = 0;
+  for (med = 0; med < 255; med++) { acc += hist[med]; if (acc >= half) break; }
+  float m = (float)(med - lo) / (hi - lo);
+  m = m < 0.02f ? 0.02f : m > 0.98f ? 0.98f : m;
+  float gam = logf(0.5f) / logf(m);
+  gam = gam < 0.4f ? 0.4f : gam > 1.2f ? 1.2f : gam;
+  static uint8_t tone[256];
+  for (int i = 0; i < 256; i++) {
+    float n = (float)(i - lo) / (hi - lo);
+    n = n <= 0 ? 0 : n >= 1 ? 1 : powf(n, gam);
+    tone[i] = (uint8_t)(n * 255.0f + 0.5f);
+  }
+  logf("levels %d..%d, median %d, gamma %.2f", lo, hi, med, gam);
 
   // Floyd-Steinberg, two rows of error
   int16_t *err = (int16_t *)calloc((HEAD + 2) * 2, sizeof(int16_t));
@@ -657,7 +676,6 @@ static bool renderRaster(const uint8_t *jpg, size_t len, int HEAD, int maxRows) 
   static uint16_t xmap[1024];
   if (HEAD > 1024) { free(err); return false; }
   for (int x = 0; x < HEAD; x++) xmap[x] = (uint16_t)((uint32_t)x * SW / HEAD);
-  int span = hi - lo;
   for (int y = 0; y < H && g_dither != 0; y++) {
     // Ordered (Bayer) dither: a fixed repeating threshold pattern. The output
     // repeats every 4 or 8 pixels, so the job compresses far better than error
@@ -665,7 +683,7 @@ static bool renderRaster(const uint8_t *jpg, size_t len, int HEAD, int maxRows) 
     const uint8_t *row = px + (size_t)((uint32_t)y * SH / H) * SW;
     uint8_t *out = bmp + y * BPR;
     for (int x = 0; x < HEAD; x++) {
-      int v = ((int)row[xmap[x]] - lo) * 255 / span;
+      int v = tone[row[xmap[x]]];
       int t = g_dither == 1 ? BAYER4[y & 3][x & 3] * 16 + 8 : BAYER8[y & 7][x & 7] * 4 + 2;
       if (v < t) out[x >> 3] |= 0x80 >> (x & 7);
     }
@@ -674,8 +692,7 @@ static bool renderRaster(const uint8_t *jpg, size_t len, int HEAD, int maxRows) 
     memset(e1 - 1, 0, (HEAD + 2) * sizeof(int16_t));
     const uint8_t *row = px + (size_t)((uint32_t)y * SH / H) * SW;
     for (int x = 0; x < HEAD; x++) {
-      int v = ((int)row[xmap[x]] - lo) * 255 / span;
-      v = (v < 0 ? 0 : v > 255 ? 255 : v) + e0[x] / 16;
+      int v = tone[row[xmap[x]]] + e0[x] / 16;
       int nw = v >= 128 ? 255 : 0;
       if (!nw) bmp[y * BPR + (x >> 3)] |= 0x80 >> (x & 7);
       int d = v - nw;
